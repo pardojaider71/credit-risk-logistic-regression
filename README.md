@@ -1,3 +1,8 @@
+Modelación de Riesgo Crediticio con Regresión Logística
+📌 Objetivo
+
+Desarrollar un modelo de regresión logística para predecir la probabilidad de incumplimiento crediticio a partir de variables financieras y demográficas.
+
 📊 Datos
 
 Se utiliza el conjunto de datos German Credit disponible en el paquete caret de R.
