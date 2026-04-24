@@ -1,0 +1,177 @@
+---
+title: "Trabajo Final GLM"
+output: html_document
+date: "2026-04-08"
+---
+Trabajo Final 
+
+
+```{r,warning=FALSE}
+library(caret)
+
+data("GermanCredit")
+df <- GermanCredit
+head(GermanCredit)
+help("GermanCredit")
+```
+Teniendo en cuenta esto, ya contamos con la base de datos que vamos a modelar.
+Esta se limpiara, eliminando las filas que tengan un valor nulo,y para el manejo de esta base de datos solo tendremo en cuenta las 10 primeras variables.
+
+```{r,warning=FALSE}
+# Cargar datos
+data("GermanCredit", package = "caret")
+df <- GermanCredit
+
+# Seleccionar variables (primeras 10 como hiciste)
+df_clean <- df[, 1:10]
+
+# 🔴 CORRECCIÓN CLAVE: respetar mayúsculas
+df_clean$Clase <- ifelse(df_clean$Class == "Good", 1, 0)
+df_clean$Clase <- as.numeric(df_clean$Clase)
+
+# Convertir a factor (opcional, pero mejor binaria numérica también sirve)
+df_clean$Clase <- as.factor(df_clean$Clase)
+
+# Variables categóricas
+df_clean$PorcentajeCuotaIngreso <- as.factor(df_clean$InstallmentRatePercentage)
+df_clean$DuracionResidencia <- as.factor(df_clean$ResidenceDuration)
+df_clean$Telefono <- as.factor(df_clean$Telephone)
+df_clean$TrabajadorExtranjero <- as.factor(df_clean$ForeignWorker)
+
+# Renombrar variables (opcional, más claro)
+names(df_clean)[1:10] <- c(
+  "Duracion", "Monto", "PorcentajeCuotaIngreso", "DuracionResidencia",
+  "Edad", "NumeroCreditos", "PersonasACargo", "Telefono",
+  "TrabajadorExtranjero", "Class"
+)
+
+# Modelo logístico
+modelo_full <- glm(
+  Clase ~ Duracion + Monto + PorcentajeCuotaIngreso + DuracionResidencia +
+    Edad + NumeroCreditos + PersonasACargo +
+    Telefono + TrabajadorExtranjero,
+  data = df_clean,
+  family = binomial(link = "logit")
+)
+
+summary(modelo_full)
+```
+```{r}
+modelo_pre <- glm(
+  Clase ~ Duracion + Monto + PorcentajeCuotaIngreso +
+    Edad + Telefono + TrabajadorExtranjero,
+  data = df_clean,
+  family = binomial(link = "logit")
+)
+
+summary(modelo_pre)
+```
+```{r}
+modelo_m <- glm(
+  Clase ~ Duracion + Monto + PorcentajeCuotaIngreso +
+    Edad + Telefono,
+  data = df_clean,
+  family = binomial(link = "logit")
+)
+
+summary(modelo_m)
+```
+
+```{r}
+resultados <- data.frame(
+  Modelo = c("Full", "Pre", "M"),
+  
+  AIC = c(
+    AIC(modelo_full),
+    AIC(modelo_pre),
+    AIC(modelo_m)
+  ),
+  
+  BIC = c(
+    BIC(modelo_full),
+    BIC(modelo_pre),
+    BIC(modelo_m)
+  ),
+  
+  Deviance = c(
+    deviance(modelo_full),
+    deviance(modelo_pre),
+    deviance(modelo_m)
+  ),
+  
+  Converge = c(
+    modelo_full$converged,
+    modelo_pre$converged,
+    modelo_m$converged
+  )
+)
+
+resultados
+```
+
+=======================Analisis descriptivo=====================================00
+
+
+#Variables Numericas
+
+```{r}
+library(ggplot2)
+# Asegurar que Class es factor
+df_clean$Class <- as.factor(df_clean$Class)
+
+# Ver distribución de la variable respuesta
+table(df_clean$Class)
+prop.table(table(df_clean$Class))
+ggplot(df_clean, aes(x = Duracion, fill = Class)) +
+  geom_histogram(position = "identity", alpha = 0.5, bins = 30)
+
+ggplot(df_clean, aes(x = Monto, fill = Clase)) +
+  geom_histogram(position = "identity", alpha = 0.5, bins = 30)
+
+ggplot(df_clean, aes(x = Edad, fill = Clase)) +
+  geom_histogram(position = "identity", alpha = 0.5, bins = 30)
+```
+```{r}
+ggplot(df_clean, aes(x = Class, y = Duracion, fill = Class)) +
+  geom_boxplot()
+
+ggplot(df_clean, aes(x = Class, y = Monto, fill = Class)) +
+  geom_boxplot()
+
+ggplot(df_clean, aes(x = Class, y = Edad, fill = Class)) +
+  geom_boxplot()
+```
+
+#Variables Categoricas
+
+```{r}
+table(df_clean$PorcentajeCuotaIngreso, df_clean$Class)
+prop.table(table(df_clean$PorcentajeCuotaIngreso, df_clean$Class), 1)
+```
+
+```{r}
+
+```
+
+=======================Correlacion variables numericas=================================================
+
+```{r}
+# Crear versión numérica de Class
+df_clean$Class_num <- ifelse(df_clean$Class == "Good", 1, 0)
+
+# Seleccionar variables numéricas + Class
+vars_cor <- df_clean[, c("Duracion", "Monto", "Edad", 
+                         "NumeroCreditos", "PersonasACargo", "Class_num")]
+
+# Matriz de correlación
+cor_matrix <- cor(vars_cor)
+
+# Ver matriz
+cor_matrix
+```
+
+
+
+
+
+
